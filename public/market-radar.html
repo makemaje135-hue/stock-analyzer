@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Market Radar</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+background:#080d19;
+color:#fff;
+}
+
+.container{
+max-width:700px;
+margin:auto;
+padding:18px;
+}
+
+.card{
+background:#111a2b;
+border:1px solid #263450;
+border-radius:18px;
+padding:18px;
+margin-bottom:14px;
+}
+
+h1{
+margin:0;
+font-size:28px;
+}
+
+.subtitle{
+color:#94a3bd;
+font-size:14px;
+margin-top:5px;
+}
+
+.row{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+}
+
+input,select,button{
+border:0;
+border-radius:12px;
+padding:14px;
+font-size:15px;
+}
+
+input,select{
+background:#202b43;
+color:white;
+flex:1;
+min-width:130px;
+}
+
+button{
+background:#6657f5;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:active{
+transform:scale(.98);
+}
+
+.signal{
+font-size:38px;
+font-weight:900;
+margin:10px 0;
+}
+
+.buy{
+color:#25d47b;
+}
+
+.sell{
+color:#ff5967;
+}
+
+.wait{
+color:#ffc857;
+}
+
+.muted{
+color:#94a3bd;
+font-size:13px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.stat{
+background:#0c1424;
+padding:13px;
+border-radius:13px;
+}
+
+.value{
+font-size:19px;
+font-weight:800;
+margin-top:5px;
+}
+
+.progress{
+height:10px;
+background:#27334b;
+border-radius:10px;
+overflow:hidden;
+margin-top:8px;
+}
+
+.progress-bar{
+height:100%;
+width:0%;
+background:#6657f5;
+transition:.4s;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+td{
+padding:11px 5px;
+border-bottom:1px solid #263450;
+}
+
+.small{
+font-size:12px;
+color:#94a3bd;
+line-height:1.7;
+}
+
+.good{
+color:#25d47b;
+}
+
+.bad{
+color:#ff5967;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>📡 Market Radar</h1>
+
+<div class="subtitle">
+أداة مراقبة وتحليل سوق العملات الرقمية
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="row">
+
+<input
+id="symbol"
+value="BTC-USDT"
+placeholder="مثال BTC-USDT"
+>
+
+<select id="timeframe">
+
+<option value="15m">15 دقيقة</option>
+
+<option value="1H">1 ساعة</option>
+
+<option value="4H" selected>4 ساعات</option>
+
+<option value="1D">يومي</option>
+
+</select>
+
+<button onclick="analyze()">
+تحليل
+</button>
+
+</div>
+
+<div
+id="status"
+class="small"
+style="margin-top:10px"
+>
+جاهز للتحليل
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div
+id="signal"
+class="signal wait"
+>
+WAIT
+</div>
+
+<div class="muted">
+قوة الإشارة
+</div>
+
+<div class="progress">
+
+<div
+id="progress"
+class="progress-bar"
+></div>
+
+</div>
+
+<div
+id="score"
+class="value"
+>
+—
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="grid">
+
+<div class="stat">
+
+<div class="muted">
+السعر الحالي
+</div>
+
+<div
+id="price"
+class="value"
+>
+—
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="muted">
+RSI
+</div>
+
+<div
+id="rsi"
+class="value"
+>
+—
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="muted">
+EMA 20
+</div>
+
+<div
+id="ema20"
+class="value"
+>
+—
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="muted">
+EMA 50
+</div>
+
+<div
+id="ema50"
+class="value"
+>
+—
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+📊 مستويات الصفقة
+</h3>
+
+<table>
+
+<tr>
+<td>الدخول Entry</td>
+<td id="entry">—</td>
+</tr>
+
+<tr>
+<td>وقف الخسارة SL</td>
+<td id="sl">—</td>
+</tr>
+
+<tr>
+<td>الهدف الأول TP1</td>
+<td id="tp1">—</td>
+</tr>
+
+<tr>
+<td>الهدف الثاني TP2</td>
+<td id="tp2">—</td>
+</tr>
+
+</table>
+
+<br>
+
+<div class="small">
+
+⚠️ هذه الإشارات تحليلية وليست ضمانًا للربح.
+العقود الآجلة والرافعة المالية تحمل مخاطر عالية.
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🔎 لماذا ظهرت هذه الإشارة؟
+</h3>
+
+<div
+id="reasons"
+class="small"
+>
+لم يتم التحليل بعد.
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+💡 طريقة الاستخدام
+</h3>
+
+<div class="small">
+
+اكتب العملة بهذا الشكل:
+
+<br><br>
+
+<strong>BTC-USDT</strong>
+
+<br>
+
+<strong>ETH-USDT</strong>
+
+<br>
+
+<strong>SOL-USDT</strong>
+
+<br><br>
+
+ثم اختر الفريم واضغط تحليل.
+
+<br><br>
+
+🟢 BUY = ميل صاعد
+
+<br>
+
+🔴 SELL = ميل هابط
+
+<br>
+
+🟡 WAIT = لا توجد إشارة قوية
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const API =
+"https://www.okx.com/api/v5/market/candles";
+
+
+function EMA(data, period){
+
+let multiplier =
+2 / (period + 1);
+
+let ema =
+data[0];
+
+for(
+let i = 1;
+i < data.length;
+i++
+){
+
+ema =
+(data[i] - ema)
+* multiplier
++ ema;
+
+}
+
+return ema;
+
+}
+
+
+function RSI(data, period = 14){
+
+let gains = 0;
+
+let losses = 0;
+
+
+for(
+let i = 1;
+i <= period;
+i++
+){
+
+let difference =
+data[i] - data[i-1];
+
+if(
+difference > 0
+){
+
+gains += difference;
+
+}else{
+
+losses -= difference;
+
+}
+
+}
+
+
+let averageGain =
+gains / period;
+
+let averageLoss =
+losses / period;
+
+
+for(
+let i = period + 1;
+i < data.length;
+i++
+){
+
+let difference =
+data[i] - data[i-1];
+
+
+let gain =
+difference > 0
+? difference
+: 0;
+
+
+let loss =
+difference < 0
+? -difference
+: 0;
+
+
+averageGain =
+(
+averageGain *
+(period - 1)
++
+gain
+) / period;
+
+
+averageLoss =
+(
+averageLoss *
+(period - 1)
++
+loss
+) / period;
+
+}
+
+
+if(
+averageLoss === 0
+){
+
+return 100;
+
+}
+
+
+let rs =
+averageGain /
+averageLoss;
+
+
+return 100 -
+(
+100 /
+(1 + rs)
+);
+
+}
+
+
+function formatNumber(number){
+
+return Number(number)
+.toLocaleString(
+undefined,
+{
+maximumFractionDigits:8
+}
+);
+
+}
+
+
+async function analyze(){
+
+const symbol =
+document
+.getElementById("symbol")
+.value
+.trim()
+.toUpperCase();
+
+
+const timeframe =
+document
+.getElementById("timeframe")
+.value;
+
+
+const status =
+document.getElementById("status");
+
+
+status.innerText =
+"⏳ جاري جلب بيانات السوق...";
+
+
+try{
+
+
+const url =
+API +
+"?instId=" +
+encodeURIComponent(symbol) +
+"&bar=" +
+timeframe +
+"&limit=200";
+
+
+const response =
+await fetch(url);
+
+
+const result =
+await response.json();
+
+
+if(
+result.code !== "0" ||
+!result.data ||
+result.data.length === 0
+){
+
+throw new Error(
+"لم يتم العثور على بيانات لهذه العملة"
+);
+
+}
+
+
+const candles =
+result.data.reverse();
+
+
+const closes =
+candles.map(
+candle => Number(candle[4])
+);
+
+
+const price =
+closes[closes.length - 1];
+
+
+const ema20 =
+EMA(closes,20);
+
+
+const ema50 =
+EMA(closes,50);
+
+
+const rsi =
+RSI(closes,14);
+
+
+let score = 50;
+
+let reasons = [];
+
+
+/* EMA20 */
+
+if(
+price > ema20
+){
+
+score += 15;
+
+reasons.push(
+"🟢 السعر فوق EMA20"
+);
+
+}else{
+
+score -= 15;
+
+reasons.push(
+"🔴 السعر تحت EMA20"
+);
+
+}
+
+
+/* EMA50 */
+
+if(
+ema20 > ema50
+){
+
+score += 20;
+
+reasons.push(
+"🟢 EMA20 فوق EMA50"
+);
+
+}else{
+
+score -= 20;
+
+reasons.push(
+"🔴 EMA20 تحت EMA50"
+);
+
+}
+
+
+/* RSI */
+
+if(
+rsi >= 55 &&
+rsi <= 70
+){
+
+score += 15;
+
+reasons.push(
+"🟢 RSI يدعم الزخم الصاعد"
+);
+
+}
+
+
+else if(
+rsi >= 30 &&
+rsi <= 45
+){
+
+score -= 15;
+
+reasons.push(
+"🔴 RSI يدعم الزخم الهابط"
+);
+
+}
+
+
+else if(
+rsi > 70
+){
+
+score -= 5;
+
+reasons.push(
+"🟡 RSI مرتفع وقد يكون هناك تشبع شراء"
+);
+
+}
+
+
+else if(
+rsi < 30
+){
+
+score += 5;
+
+reasons.push(
+"🟢 RSI منخفض وقد توجد فرصة ارتداد"
+);
+
+}
+
+
+score =
+Math.max(
+0,
+Math.min(
+100,
+score
+)
+);
+
+
+let signal;
+
+
+if(
+score >= 65
+){
+
+signal = "BUY";
+
+}
+
+else if(
+score <= 35
+){
+
+signal = "SELL";
+
+}
+
+else{
+
+signal = "WAIT";
+
+}
+
+
+/* مستويات الصفقة */
+
+const risk =
+Math.max(
+price * 0.008,
+Math.abs(ema20 - ema50) * 0.7
+);
+
+
+let stopLoss;
+
+let takeProfit1;
+
+let takeProfit2;
+
+
+if(
+signal === "BUY"
+){
+
+stopLoss =
+price - risk;
+
+takeProfit1 =
+price + risk * 1.5;
+
+takeProfit2 =
+price + risk * 2.5;
+
+}
+
+
+else if(
+signal === "SELL"
+){
+
+stopLoss =
+price + risk;
+
+takeProfit1 =
+price - risk * 1.5;
+
+takeProfit2 =
+price - risk * 2.5;
+
+}
+
+
+else{
+
+stopLoss = price;
+
+takeProfit1 = price;
+
+takeProfit2 = price;
+
+}
+
+
+/* عرض البيانات */
+
+const signalElement =
+document.getElementById("signal");
+
+
+signalElement.innerText =
+signal;
+
+
+signalElement.className =
+"signal " +
+(
+signal === "BUY"
+? "buy"
+:
+signal === "SELL"
+? "sell"
+: "wait"
+);
+
+
+document.getElementById(
+"progress"
+).style.width =
+score + "%";
+
+
+document.getElementById(
+"score"
+).innerText =
+score + " / 100";
+
+
+document.getElementById(
+"price"
+).innerText =
+formatNumber(price);
+
+
+document.getElementById(
+"rsi"
+).innerText =
+formatNumber(rsi);
+
+
+document.getElementById(
+"ema20"
+).innerText =
+formatNumber(ema20);
+
+
+document.getElementById(
+"ema50"
+).innerText =
+formatNumber(ema50);
+
+
+document.getElementById(
+"entry"
+).innerText =
+formatNumber(price);
+
+
+document.getElementById(
+"sl"
+).innerText =
+formatNumber(stopLoss);
+
+
+document.getElementById(
+"tp1"
+).innerText =
+formatNumber(takeProfit1);
+
+
+document.getElementById(
+"tp2"
+).innerText =
+formatNumber(takeProfit2);
+
+
+document.getElementById(
+"reasons"
+).innerHTML =
+reasons.join("<br><br>");
+
+
+status.innerText =
+"✅ تم التحليل باستخدام بيانات OKX";
+
+
+}
+
+catch(error){
+
+status.innerText =
+"❌ خطأ: " +
+error.message;
+
+}
+
+}
+
+
+analyze();
+
+</script>
+
+</body>
+</html>
